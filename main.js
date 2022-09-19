@@ -9,6 +9,9 @@ const inputBookIsComplete = document.getElementById('inputBookIsComplete');
 const incompleteBookshelfList = document.getElementById('incompleteBookshelfList');
 const completeBookshelfList = document.getElementById('completeBookshelfList');
 
+const searchBookTitle = document.getElementById('searchBookTitle');
+const searchSubmit = document.getElementById('searchSubmit');
+
 const bookSubmit = document.getElementById('bookSubmit');
 
 bookSubmit.addEventListener('click', (e) => {
@@ -64,6 +67,19 @@ const buatKartuBuku = (lemari) => {
     return template;
 }
 
+const renderFilteredLemari = (filteredLemari) => {
+    incompleteBookshelfList.innerHTML = '';
+    completeBookshelfList.innerHTML = '';
+
+    lemari.forEach((lemari) => {
+        if (lemari.selesaiDibaca === true) {
+            completeBookshelfList.innerHTML += buatKartuBuku(lemari);
+        } else {
+            incompleteBookshelfList.innerHTML += buatKartuBuku(lemari);
+        }
+    });
+}
+
 const cariId = (id) => {
     for (let i = 0; i < lemari.length; i++)
         if (lemari[i].id === id.toString())
@@ -83,3 +99,22 @@ const hapusBuku = (id) => {
     lemari.splice(cariIndex, 1);
     document.dispatchEvent(new Event(RENDER_EVENT));
 }
+
+searchSubmit.addEventListener('click', (e) => {
+    e.preventDefault();
+    const judul = searchBookTitle.value;
+
+    const tokens = judul.toLowerCase().split(' ').filter((tokens) => tokens.trim() !== '');
+
+    if (tokens.length) {
+        let searchTermRegex = new RegExp(tokens.join('|'), 'gim');
+        const filteredLemari = lemari.filter((lemari) => {
+            let lemariString = '';
+            lemariString += lemari.judul.toString().toLowerCase().trim() + ' ';
+            return lemariString.match(searchTermRegex);
+        });
+        renderFilteredLemari(filteredLemari);
+    } else {
+        document.dispatchEvent(new Event(RENDER_EVENT));
+    }
+})
