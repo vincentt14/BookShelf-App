@@ -1,43 +1,85 @@
-// STEP 5 : kita buat variabel books isinya array kosong buat namoung object newBookObject
-const books = [];
+const lemari = [];
+const RENDER_EVENT = 'render-all-books';
 
-
-// STEP 1 : kita inisiasikan dulu yg bakal diinput sama user kedalam variabel GLOBAL
 const inputBookTitle = document.getElementById('inputBookTitle');
 const inputBookAuthor = document.getElementById('inputBookAuthor');
 const inputBookYear = document.getElementById('inputBookYear');
 const inputBookIsComplete = document.getElementById('inputBookIsComplete');
 
-// kita iniasikan juga button biar variabelnya bisa kita pakai
+const incompleteBookshelfList = document.getElementById('incompleteBookshelfList');
+const completeBookshelfList = document.getElementById('completeBookshelfList');
+
 const bookSubmit = document.getElementById('bookSubmit');
 
-// STEP 2 : kita ambil value inputan user ketika dia tekan button submit
 bookSubmit.addEventListener('click', (e) => {
     e.preventDefault();
     const id = +new Date();
-    const title = inputBookTitle.value;
-    const author = inputBookAuthor.value;
-    const year = inputBookYear.value;
-    const isComplete = inputBookIsComplete.checked;
+    const judul = inputBookTitle.value;
+    const penulis = inputBookAuthor.value;
+    const tahun = inputBookYear.value;
+    const selesaiDibaca = inputBookIsComplete.checked;
 
-    // kita cek dulu uda masuk apa belum di console log
-    // console.log(id);
+    const bukuBaru = objectBlueprint(id.toString(), judul, penulis, tahun, selesaiDibaca);
 
-    // STEP 4 : kita panggil function blueprint itu dan tampung ke variabel yg bakal kita pakai teru terusan
-    const newBookObject = generateBookObject(id.toString(), title, author, year, isComplete);
-
-    // STEP 5: habis kita buat variabel global diatas, kita masukin newbook
-    books.push(newBookObject);
-    console.log(books);
+    lemari.push(bukuBaru);
+    document.dispatchEvent(new Event(RENDER_EVENT));
 });
 
-// STEP 3 : kita buat blueprint object buat nampung inputan user pakai function
-const generateBookObject = (id, title, author, year, isComplete) => {
+const objectBlueprint = (id, judul, penulis, tahun, selesaiDibaca) => {
     return {
         id,
-        title,
-        author,
-        year,
-        isComplete
+        judul,
+        penulis,
+        tahun,
+        selesaiDibaca
     }
+}
+
+document.addEventListener(RENDER_EVENT, () => {
+    incompleteBookshelfList.innerHTML = '';
+    completeBookshelfList.innerHTML = '';
+
+    lemari.forEach((lemari) => {
+        if (lemari.selesaiDibaca === true) {
+            completeBookshelfList.innerHTML += buatKartuBuku(lemari);
+        } else {
+            incompleteBookshelfList.innerHTML += buatKartuBuku(lemari);
+        }
+    })
+})
+
+const buatKartuBuku = (lemari) => {
+    const template = `
+        <article class="book_item">
+            <h3>${lemari.judul}</h3>
+            <p>Penulis: ${lemari.penulis}</p>
+            <p>Tahun: ${lemari.tahun}</p>
+
+            <div class="action">
+                <button class="green" onClick="pindahPindah(${lemari.id})">${lemari.selesaiDibaca === true ? `belum` : ''} Selesai di Baca</button>
+                <button class="red" onClick="hapusBuku(${lemari.id})">Hapus buku</button>
+            </div>
+        </article>
+    `;
+    return template;
+}
+
+const cariId = (id) => {
+    for (let i = 0; i < lemari.length; i++)
+        if (lemari[i].id === id.toString())
+            return i;
+    return -1;
+}
+
+const pindahPindah = (id) => {
+    const cariIndex = cariId(id);
+    if (cariIndex === -1) return;
+    lemari[cariIndex].selesaiDibaca = !lemari[cariIndex].selesaiDibaca;
+    document.dispatchEvent(new Event(RENDER_EVENT));
+}
+
+const hapusBuku = (id) => {
+    const cariIndex = cariId(id);
+    lemari.splice(cariIndex, 1);
+    document.dispatchEvent(new Event(RENDER_EVENT));
 }
